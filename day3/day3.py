@@ -1,86 +1,56 @@
-file_lines = open('input.txt').readlines()
-def origin_md(point) : return abs(0-point['x'])+abs(0-point['y'])
-def compare_coord(coord1, coord2):
-    if coord1['x'] == coord2['x']:
-        if coord1['y'] == coord2['y']:
-            return True
-    else: return False
+dx = {"U":0,"D":0,"L":-1,"R":1}
+dy = {"U":1,"D":-1,"L":0,"R":0}
 
-wire1i = file_lines[0].split(',')
-wire2i = file_lines[1].split(',')
 
-# Create coordinates from list of directions
-# and log line points
-wire1x, wire1y, wire2x, wire2y = 0, 0, 0, 0
-wire1coords = []
-wire2coords = []
-for i in wire1i:
-    if i[0] == 'R' : wire1x += int(i[1:])
-    elif i[0] == 'L' : wire1x -= int(i[1:])
-    elif i[0] == 'U' : wire1y += int(i[1:])
-    else : wire1y -= int(i[1:])
-    coord = {'x':wire1x, 'y':wire1y}
-    wire1coords.append(coord)
+def makemove(map,point,move,id,laststep):
+    """
+    simulate a single move like R3,L5 etc.
+    1. set the starting point
+    2. loop over the # of steps
+       a. Calculate the next point
+       b.If the point is not in our "map"
+         add it along with the steps so far.
+       c. If it is and it's not our ID, add our ID and update
+          the steps so far, otherwise disregard this point and
+          just move on to the next one 
+    """
+    dir,steps = move
+    for s in range(1,steps+1):
+        point = (point[0]+dx[dir],point[1]+dy[dir])
+        if point not in map:
+            map[point] = {"steps":laststep+s,"intersect":False,"ids":set([id])}
+        elif id not in map[point]["ids"]: # point is present but this id isn't
+            map[point] = {"steps": map[point]["steps"]+laststep+s,"intersect":True,"ids":map[point]["ids"].union([id])}
+    return (map,point,laststep+s)
 
-for i in wire2i:
-    if i[0] == 'R' : wire2x += int(i[1:])
-    elif i[0] == 'L' : wire2x -= int(i[1:])
-    elif i[0] == 'U' : wire2y += int(i[1:])
-    else : wire2y -= int(i[1:])
-    coord = {'x':wire2x,'y':wire2y}
-    wire2coords.append(coord)
-i = 1
-for i in range(len(wire1coords)):
-    coord1 = wire1coords[i-1]
-    coord2 = wire1coords[i]
-    if coord1['x'] != coord2['x']:
-        diff = abs(coord1['x'] - coord2['x'])
-        minx = min(coord1['x'], coord2['x'])
-        y = coord1['y']
-        for j in range(1,diff):
-            wire1coords.append({'x':minx+j,'y':y})
-    else:
-        diff = abs(coord1['y'] - coord2['y'])
-        miny = min(coord1['y'], coord2['y'])
-        x = coord1['x']
-        for j in range(1,diff):
-            wire1coords.append({'x':x,'y':miny+j})
-for i in range(len(wire2coords)):
-    coord1 = wire2coords[i-1]
-    coord2 = wire2coords[i]
-    if coord1['x'] != coord2['x']:
-        diff = abs(coord1['x'] - coord2['x'])
-        minx = min(coord1['x'], coord2['x'])
-        y = coord1['y']
-        for j in range(1,diff):
-            wire2coords.append({'x':minx+j,'y':y})
-    else:
-        diff = abs(coord1['y'] - coord2['y'])
-        miny = min(coord1['y'], coord2['y'])
-        x = coord1['x']
-        for j in range(1,diff):
-            wire2coords.append({'x':x,'y':miny+j})
+def processline(map,id,line):
+    point=(0,0)
+    laststep = 0
+    for m in line:
+        (map,point,laststep) = makemove(map,point,m, id, laststep)
+    return map
 
-intersects = []
-num = 0
-print('# of Coords for Wire1: {}'.format(len(wire1coords)))
-print('# of Coords for Wire2: {}'.format(len(wire2coords)))
 
-for coord in wire1coords:
-    if coord in wire2coords:
-        intersects.append(coord)
-    else:
-        if num%1000 == 0 and num != 0:
-            print(num)
-        num+=1
 
-print('Intersection Points: {}'.format(len(intersects)))
+f = open("input.txt")
+l1_raw  = f.readline()
+l2_raw = f.readline()
 
-dist = origin_md(intersects[0])
-coord
-for i in intersects:
-    if dist > origin_md(i):
-        dist = origin_md(i)
-        coord = i
+# convert to a more useable form ("R",34) instead of "R34"
+l1 = [ (x[0],int(x[1:])) for x in l1_raw.split(',')]
+l2 = [ (x[0],int(x[1:])) for x in l2_raw.split(',')]
 
-print('Closest Distance to origin: {}\nCoord: {}'.format(dist,coord))
+#  build our map
+m = processline({},0,l1)
+m2 = processline(m,1,l2)
+
+
+# for part 1, pull out all the intersecting lines, calculate
+# the manhattan distance of the point to the origin
+# sort and take the smallest
+part1 = sorted([abs(x[0])+abs(x[1]) for x in m if m[x]['intersect']==True])[0]
+print("Part 1: "+str(part1))
+
+# instead of distance look at least steps
+part2 = sorted([m[x]['steps'] for x in  m2 if m2[x]['intersect']==True])[0]
+print("Part 2: "+str(part2))
