@@ -1,49 +1,49 @@
-# Exit codes:
-# 1: Program attempts to find the index of a tree object within a list due to the object already
-#       having a defined "right" value, meaning some error has occured with either finding the
-#       index of the object, the evaluation of the object in the array, or the addition of the
-#       object to the array.
-
-class Tree(object):
-    def __init__(self):
-        self.right = None
-        self.left = None
-        self.data = None
-    
-    def inside(self,arr):
-        for tree in arr:
-            if tree.data == self.data : return True
-        return False
-
-    def find_in(self, ls):
-        for i in range(len(ls)):
-            if self.data == ls[i].data:
-                return i
-        return -1
-    
-    def get_str(self):
-        return '|-- {}\nR: {}\nL: {}\n'.format(self.data,self.right,self.left)
-
-omap = open('day6.data')
-orbits = [tuple(line.split(')')) for line in omap.read().splitlines()]
-
-# Create tree objects
-tree_list = []
-total_orbits = 0
-for orbit in orbits:
-    obj1 = Tree()
-    obj1.data = orbit[0]
-    if not obj1.inside(tree_list):
-        obj1.right = orbit[1]
-        tree_list.append(obj1)
-        total_orbits +=1
-    else:
-        index = obj1.find_in(tree_list)
-        if index == -1 : print('Error finding obj in list.');exit(1)
-        tree_list[index].left = orbit[1]
-        total_orbits+=1
-
-
-
-
-print('Total Orbits: {}'.format(total_orbits))
+#get the list of orbits into a two-dimensional array
+input1 = open("day6.data","r")
+orbits = input1.read()
+orbits = orbits.split("\n")
+for i in range(len(orbits)):
+    orbits[i] = orbits[i].split(")")
+ 
+list1 =[]
+ 
+for i in range(len(orbits)):
+    for j in range(len(orbits[i])):
+        list1.append(orbits[i][j])
+ 
+#planets is a list of all planets, with no duplicates
+planets = list(set(list1))
+ 
+for i in range(len(planets)-1):     #delete COM from planets
+    if (planets[i]=="COM"):
+        del(planets[i])
+ 
+#recursive function to find and count all direct and indirect orbits of a given planet,
+#going backwards
+def findOrbits(orbitArray, world, count):
+    for i in orbitArray:
+       
+        localCount = count
+        endCheck = i[0]
+        worldCheck = i[1]
+       
+        if(worldCheck==world):
+            if(endCheck!="COM"):
+                localCount += 1
+                returnValue = findOrbits(orbitArray,endCheck,localCount)
+            else:
+                localCount +=1
+                returnValue = localCount
+               
+    return returnValue
+ 
+#total count of all direct and indirect orbits
+orbitCount = 0
+ 
+#loop to find anc count all orbits of every planet
+for z in planets:
+    number = findOrbits(orbits, z, 0)
+    orbitCount += number
+ 
+#print the resulting orbit count
+print("The total direct and indirect orbits is " + str(orbitCount))
