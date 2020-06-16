@@ -32,7 +32,7 @@ def processline(map,id,line):
 
 
 
-f = open("input.txt")
+f = open("day3.data")
 l1_raw  = f.readline()
 l2_raw = f.readline()
 
