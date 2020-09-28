@@ -24,6 +24,7 @@ Your puzzle input is 359282-820401
 #include <utility>
 #include <string>
 #include <vector>
+#include <iostream>
 using namespace std;
 
 bool isViablePswd(string pswd);
@@ -33,6 +34,7 @@ bool adjNums(string pswd);
 int main()
 {
     string max = "820401";
+    //string max = "359282";
     string pswd = "359282";
     vector<string> viables = { };
 
@@ -54,55 +56,50 @@ bool isViablePswd(string pswd)
 {
     bool viable = true;
 
-    // Is it a 6 digit number?
-    if (stoi(pswd) > 999999)
-        viable = false;
-
-    // Is it bigger than the max?
-    // This is covered by the while loop in main().
-
     // Are two adjacent digits the same?
     viable = adjNums(pswd);
     
     // Do digits decrease when going from left to right?
-    for (int i = 1; i < pswd.length(); i++)
-        if (pswd[i] - 48 < pswd[i-1] - 48)
-            viable = false;
+    int num = stoi(pswd);
+    while (num >= 10)
+    {
+        if (num%10 < (num/10)%10)
+            return false;
+        else
+            num /= 10;
+    }
 
     return viable;
 }
 
 bool adjNums(string pswd)
 {
-    // 511 is too high
-    // 125 is too low
-
-    vector<string> parts = { };
-
-    for (int i = 0; i < pswd.length(); i++)
+    //316 is the correct answer
+    vector<string> parts = {};
+    int count = 0;
+    for(char c : pswd)
     {
-        char part = pswd[i];
-        pswd[i] = '-';
-
-        if (part != '-')
+        for (int i = 0; i < pswd.length(); i++)
         {
-            int count = 1;
-            for (int j = 0; j < pswd.length(); j++)
+            if (c != '-')
             {
-                if (pswd[j] == part)
+                if (pswd[i] == c)
+                {
+                    pswd[i] = '-';
                     count++;
+                }
             }
-
-            string fullPart = "";
-            for (int j = 0; j < count; j++)
-                fullPart += part;
-            parts.push_back(fullPart);
         }
+        string part = "";
+        for (int i = 0; i < count; i++)
+            part += c;
+        count = 0;
+        parts.push_back(part);
     }
-    
+
+
     for (string part : parts)
         if (part.length() == 2)
             return true;
-
     return false;
 }

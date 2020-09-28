@@ -1,16 +1,14 @@
 def get_intcode():
-    file = open("day5.dat")
+    file = open("day5.data")
     intcode = []
-    for num in file.read().split(',') : intcode.append(int(num))
+    for num in file.read().split(','):
+        intcode.append(int(num))
     file.close()
     return intcode
 
-# Example:
-# 1002,4,3,4
 def read_code(intcode):
     pos = 0
     while intcode[pos] != 99:
-        #print(pos)
         inst = str(intcode[pos])
 
         while len(inst) != 5:
@@ -37,31 +35,24 @@ def read_code(intcode):
             if op_code == '05':
                 if val1 != 0:
                     pos = val2
-                    #print('05 change')
                 else : pos+=3
 
             elif op_code == '06':
                 if val1 == 0:
                     pos = val2
-                    #print('06 change')
                 else : pos+=3
             else:
                 if op_code == '01':
-                    #print('add')
                     intcode[store_val] = val1 + val2
                 elif op_code == '02':
-                    #print('mult')
                     intcode[store_val] = val1*val2
                 elif op_code == '07':
-                    #print('less')
                     intcode[store_val] = 1 if val1 < val2 else 0
                 elif op_code == '08':
-                    #print('eq')
                     intcode[store_val] = 1 if val1 == val2 else 0
                 else : print('Unknown Op_Code at pos {}.'.format(pos))
                 pos+=4
-        #print(intcode)
-
+                
 def main():
     read_code(get_intcode())
 
