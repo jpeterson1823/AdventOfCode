@@ -74,6 +74,9 @@ char* get_input(size_t init_size) {
 	// append null-terminator to string
 	str[len++] = '\0';
 
+	// close file pointer
+	fclose(fp);
+
 	// remove excess allocated memory and return string
 	return realloc(str, sizeof(*str)*len);
 }

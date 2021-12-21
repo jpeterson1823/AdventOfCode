@@ -45,7 +45,7 @@ int part1(char* str) {
 				curr_depth = realloc(curr_depth, depth_pos);
 
 				// if increased since last reading, increment count if not on first check
-				if (atoi(curr_depth) > atoi(prev_depth)) {
+				if (strcmp(curr_depth, prev_depth) > 0) {
 					if (first_check)
 						first_check = 0;
 					else
