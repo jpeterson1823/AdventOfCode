@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "../include/list.h"
 
 
 // PROTOTYPES
@@ -113,32 +114,13 @@ void part1(char* str) {
 
 
 void part2 (char* str) {
-	// declare all mission critical vars
+	// create list of all binary numbers
 	int bitwidth = 12;
-	char* oxybin, co2bin;
-	long oxyrating, co2rating;
-	int numLines = strlen(str);
+	list* l = List.create(str, bitwidth);
+	for (int i = 1; i < strlen(str)/(bitwidth+1); i++)
+		List.append(l, &str[(bitwidth+1)*i], bitwidth);
 
-	// count number of '0's and '1's
-	int n0 = 0;
-	int n1 = 0;
-	// loop through each character on the line (0-11 = bit, 12 = '\n')
-	for (int bit = 0; bit < bitwidth; bit++) {
-		char ch;
-		int n0 = 0;
-		int n1 = 0;
-		// count the number of 1's and 0's for the current bit column
-		for (int line = 0; line < numLines; line++) {
-			// check the bit on this current line
-			ch = str[(line * 12) + bit];
-
-			// count number of '0's and '1's
-			if (ch == '0')
-				n0++;
-			else
-				n1++;
-		}
-	}
+	List.destroy(l);
 }
 
 
