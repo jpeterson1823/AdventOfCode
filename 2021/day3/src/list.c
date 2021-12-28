@@ -2,9 +2,10 @@
 #include "../include/node.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 list* list_create(char* data, int len) {
-	// alloc memory for list
+	// alloc memory for list, and check to make sure memory was properly alloc'd
 	list* l = malloc(sizeof(list));
 
 	// create head node with str as data
@@ -35,12 +36,17 @@ void list_append(list* l, char* data, int len) {
 	// create new node
 	node* n = Node.create(data, len);
 
-	// set tail's next node to n
-	l->tail->next = n;
-	// set tail to n
-	l->tail = n;
-	// increment len
-	l->len++;
+	// if list is empty, init head
+	if (l->head == NULL)
+		l->head = n;
+	else {
+		// set tail's next node to n
+		l->tail->next = n;
+		// set tail to n
+		l->tail = n;
+		// increment len
+		l->len++;
+	}
 }
 
 void list_remove(list* l, int index) {
@@ -101,11 +107,39 @@ void list_print(list* l) {
 	l->current = l->head;
 }
 
+char* list_get(list* l, int index) {
+	if (index >= l->len) {
+		fprintf(stderr, "[ OutOfBoundsException ]\n\t==> Attemped to access element outside of list bounds.\n\t==> Exiting...\n");
+		exit(-1);
+	}
+	// set current to head node
+	l->current = l->head;
+	for (int i = 0; i < index; i++)
+		l->current = l->current->next;
+	// return the data at the node
+	return l->current->data;
+
+}
+
+list* list_copy(list* og) {
+	og->current = og->head;
+	list* copy = List.create(og->current->data, strlen(og->current->data));
+
+	for (int i = 1; i < og->len; i++) {
+		og->current = og->current->next;
+		List.append(copy, og->current->data, strlen(og->current->data));
+	}
+
+	return copy;
+}
+
 list_interface List = {
 	.create = list_create,
 	.destroy = list_destroy,
 	.append = list_append,
 	.remove = list_remove,
 	.pop = list_pop,
-	.print = list_print
+	.get = list_get,
+	.print = list_print,
+	.copy = list_copy
 };

@@ -7,6 +7,7 @@
 // PROTOTYPES
 void buf_check(void* buffer);
 char* get_input(size_t init_size);
+long get_rating(list* l, int bitwidth, char module);
 void part1(char* str);
 void part2(char* str);
 
@@ -120,7 +121,99 @@ void part2 (char* str) {
 	for (int i = 1; i < strlen(str)/(bitwidth+1); i++)
 		List.append(l, &str[(bitwidth+1)*i], bitwidth);
 
+	// create oxy and co2 lists
+	list* oxy = List.copy(l);
+	list* co2 = List.copy(l);
+
+	printf("OG OxyList: ");
+	List.print(oxy);
+	
+	long oxyrating = get_rating(l, bitwidth, 'o');
+	long co2rating = get_rating(l, bitwidth, 'c');
+	printf("Oxy Rating: %ld\n", oxyrating);
+	printf("Co2 Rating: %ld\n", co2rating);
+
+	printf("Life Support Rating: %ld\n", oxyrating*co2rating);
+
 	List.destroy(l);
+	List.destroy(oxy);
+	List.destroy(co2);
+}
+
+long get_rating(list* og, int bitwidth, char module) {
+	// create new list as not to change original
+	list* l = List.copy(og);
+	
+	for (int bitcolumn = 0; bitcolumn < bitwidth; bitcolumn++) {
+		int n0 = 0;
+		int n1 = 0;
+		for (int num = 0; num < l->len; num++) {
+			char bit = List.get(l, num)[bitcolumn];
+			if (bit == '0')
+				n0++;
+			else
+				n1++;
+		}
+		printf("n0: %i \tn1: %i\n", n0, n1);
+
+		// determine num
+		char num;
+		if (module == 'o') {
+			if (n0 > n1)
+				num = '0';
+			else
+				num = '1';
+		} else {
+			if (n0 > n1)
+				num = '1';
+			else
+				num = '0';
+		}
+
+		printf("Num: %c\n", num);
+		
+		// remove nums in l that dont start with num
+		list* newL = NULL;
+		for (int i = 0; i < l->len; i++) {
+			char* n = List.get(l, i);
+			if (n[bitcolumn] == num) {
+				if(newL == NULL)
+					newL = List.create(n, bitwidth);
+				else
+					List.append(newL, n, bitwidth);
+			}
+		}
+
+		printf("List is NULL: %i\n", newL==NULL);
+
+		if (newL != NULL) {
+			// destroy oxy list
+			List.destroy(l);
+
+			// set oxy to point to newOxy
+			l = newL;
+		}
+	}
+
+	// get the numbers for each rating
+	// convert binary values to decimal
+	char* str = List.get(l, 0);
+	long rating = 0;
+	int bit = 0;
+	int n = bitwidth - 1;
+	// act in reverse order
+	while (n >= 0) {
+		if (str[n] == '1')
+			rating += (1 << bit);
+		n--;
+		bit++;
+	}
+
+	// destroy copied list
+	List.destroy(l);
+
+	// return the calculated rating
+	return rating;
 }
 
 

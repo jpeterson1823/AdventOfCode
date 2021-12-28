@@ -6,11 +6,13 @@ typedef struct LINKED_LIST list;
 
 typedef struct LIST_INTERFACE {
 	list* (*create)(char* data, int len);
+	list* (*copy)(list* og);
 	void (*destroy)(list* l);
 	void (*append)(list* l, char* data, int len);
 	void (*remove)(list* l, int index);
 	void (*print)(list* l);
 	void (*pop)(list* l);
+	char* (*get)(list* l, int index);
 } list_interface;
 
 struct LINKED_LIST {

@@ -1,6 +1,7 @@
 #include "../include/node.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 node* node_constructor(char* data, int len) {
 	// deepcopy data; use (len+1) to account for null terminator
