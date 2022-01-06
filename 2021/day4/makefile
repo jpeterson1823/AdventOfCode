@@ -7,10 +7,10 @@ CFLAGS=-g -I$(IDIR)
 ODIR = ./src/obj
 LDIR = ./lib
 
-_DEPS = day4.h
+_DEPS = day4.h cstring.h
 DEPS = $(patsubst %, $(IDIR)/%,$(_DEPS))
 
-_OBJ = day4.o
+_OBJ = day4.o cstring.o
 OBJ = $(patsubst %, $(ODIR)/%,$(_OBJ))
 
 SRCDIR = ./src
@@ -18,7 +18,7 @@ SRCDIR = ./src
 $(ODIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-day3: $(OBJ)
+day4: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 .PHONY: clean

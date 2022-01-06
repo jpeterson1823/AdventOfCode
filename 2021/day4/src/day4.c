@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "../include/part1.h"
+#include "../include/part2.h"
 
 
 // PROTOTYPES
