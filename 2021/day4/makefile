@@ -1,0 +1,27 @@
+#https://cs.colby.edu/maxwell/courses/tutorials/maketutor/ 
+
+IDIR = ./include
+CC=gcc
+CFLAGS=-g -I$(IDIR)
+
+ODIR = ./src/obj
+LDIR = ./lib
+
+_DEPS = day4.h
+DEPS = $(patsubst %, $(IDIR)/%,$(_DEPS))
+
+_OBJ = day4.o
+OBJ = $(patsubst %, $(ODIR)/%,$(_OBJ))
+
+SRCDIR = ./src
+
+$(ODIR)/%.o: $(SRCDIR)/%.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+day3: $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGS)
+
+.PHONY: clean
+
+clean:
+	rm -rf $(ODIR)/*.o *~ core $(INCDIR)/*~
