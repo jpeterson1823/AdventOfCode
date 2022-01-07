@@ -13,6 +13,8 @@ int main() {
 	// get puzzle input from file
 	char* str = get_input(100);
 
+	part1(str);
+
 	// free allocated memory
 	free(str);
 	return 0;

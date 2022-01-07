@@ -7,10 +7,10 @@ CFLAGS=-g -I$(IDIR)
 ODIR = ./src/obj
 LDIR = ./lib
 
-_DEPS = day4.h cstring.h
+_DEPS = cstring.h part1.h part2.h
 DEPS = $(patsubst %, $(IDIR)/%,$(_DEPS))
 
-_OBJ = day4.o cstring.o
+_OBJ = day4.o cstring.o part1.o part2.o
 OBJ = $(patsubst %, $(ODIR)/%,$(_OBJ))
 
 SRCDIR = ./src
