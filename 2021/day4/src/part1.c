@@ -42,21 +42,18 @@ int* get_draws(char* input) {
 	return draws;
 }
 
-
 int** get_board(char* input, int num) {
 	int row_len = 15; 	// 5 2-char numbers, 4 spaces, and one return char: 5*2 + 4 + 1 = 15
-	int num_rows = 5;
-	int num_cols = 5;
-	int npr = 5; 		// numbers per row
 	int step = 3;
 
 	// skip first and second line of input file, as well as other boards according to "num" param
-	char* boards = &input[291 + (row_len*num_rows + 1)*num];
+	char* boards = &input[MAIN_LINE_OFFSET + (row_len*BOARD_H + 1)*num];
+	//char* boards = &input[TEST_LINE_OFFSET + (row_len*BOARD_H + 1)*num];
 
 	int** board = malloc(sizeof(int*) * 5);
 	int bi = 0;
-	for (int row = 0; row < num_rows; row++) {
-		int* r = malloc(sizeof(int) * npr);
+	for (int row = 0; row < BOARD_H; row++) {
+		int* r = malloc(sizeof(int) * BOARD_W);
 		int ri = 0;
 		for (int i = 0; i < row_len; i+=step) {
 			// get number in row as cstring
@@ -74,83 +71,165 @@ int** get_board(char* input, int num) {
 	return board;
 }
 
-void free_board(int** board) {
+void free_board(Board* board) {
+	// free each row array
 	for (int i = 0; i < 5; i++)
-		free(board[i]);
+		free(board->array[i]);
+	// free the array itself
+	free(board->array);
+	// free marked num array if it was used
+	if (board->marked != NULL)
+		free(board->marked);
+	// free board pointer
 	free(board);
 }
 
-unsigned long hash(int i) {
-	return i<<1 / 2;
+unsigned int num_inside(int* arr, int len, int num) {
+	for (int i = 0; i < len; i++)
+		if (arr[i] == num)
+			return 1;
+	return 0;
 }
 
-int check_win(int** board, int* draws) {
-	printf("Current Board:\n");
-	for (int r = 0; r < 5; r++) {
-		printf("\t");
-		for (int c = 0; c < 5; c++)
-			printf("%i ", board[r][c]);
-		printf("\n");
+void mark_num(Board* board, int num) {
+	for (int row = 0; row < BOARD_W; row++) {
+		if (num_inside(board->array[row], BOARD_H, num)) {
+			board->marked = realloc(board->marked, sizeof(int) * (board->num_marked + 1));
+			board->marked[board->num_marked++] = num;
+			return;
+		}
+	}
+}
+
+unsigned int check_win(Board* board) {
+	// if board's number of marked numbers is less than 5, then it is impossible to win
+	if (board->num_marked < 5)
+		return 0;
+
+	// iterate through each row
+	for (int row = 0; row < BOARD_H; row++) {
+		// create marked number counter
+		int marks = 0;
+		// iterate through each number in row
+		for (int col = 0; col < BOARD_W; col++)
+			// if known marked number is within row, add to marked number counter
+			if (num_inside(board->marked, board->num_marked, board->array[row][col]))
+				marks++;
+		// if marks == 5, that means all 5 numbers in the row are marked, a.k.a bingo!
+		if (marks == 5)
+			return 1;
 	}
 
-	int step = 5;
-	for (int draw = 0; draw < 95; draw+=step) {
-		// calculate hash
-		unsigned long draw_hash = 0;
-		for (int i = draw; i < draw+step; i++)
-			draw_hash = hash(draws[i]);
-
-		// check each row to see if it's hash matches
-		for (int row = 0; row < 5; row++) {
-			unsigned long row_hash = 0;
-			for (int col = 0; col < 5; col++)
-				row_hash += hash(board[row][col]);
-			if (row_hash == draw_hash)
-				return draw+step;
+	// iterate through each col
+	for (int col = 0; col < BOARD_W; col++) {
+		// create marked number counter
+		int marks = 0;
+		// iterate through all numbers within the current column
+		for (int row = 0; row < BOARD_H; row++) {
+			// if current number is inside marked number list, increment marked counter
+			if (num_inside(board->marked, board->num_marked, board->array[row][col]))
+				marks++;
 		}
-
-		for (int col = 0; col < 5; col++) {
-			unsigned long col_hash = 0;
-			for (int row = 0; row < 5; row++)
-				col_hash = hash(board[col][row]);
-			if (col_hash == draw_hash)
-				return draw+step;
-		}
-
+		// if marks == 5, that means all 5 numbers in the column are marked, a.k.a bingo!
+		if (marks == 5)
+			return 1;
 	}
 
-	return -1;
+	// otherwise, board has not yet won
+	return 0;
 }
 
-int calc_unmarked_sum(int** board, int winning_draw) {
-	// TODO
-	return NULL;
+void play(Board* board, int* draws) {
+	// run through the first 4 draws since a bingo is impossible before the 5th draw.
+	for (int i = 0; i < 4; i++)
+		mark_num(board, draws[i]);
+
+	// run through all remaining draws and... well, play bingo.
+	int draw = 4;
+
+	// loop until end of drawn numbers list
+	while (draws[draw] != -1) {
+		mark_num(board, draws[draw]);			// Mark the current number
+		if (check_win(board)) {					// check if board has won
+			board->winning_draw = draws[draw]; 	// if so, save the winning draw
+			board->draws = draw+1;				// also save the number of draws taken to win
+			return;								// return to force exit of function
+		}
+		else // draw the next number if board has not won
+			draw++;
+	}
+
+	// if zero matches, set draws to int's max
+	board->draws = 0x7FFFFFFF;
 }
+
+
+
 
 void part1(char* input) {
 	// get rolls from first line of file
 	int* draws = get_draws(input);
 
+	// create list of boards
+	Board** boards = malloc(sizeof(Board*) * NUM_BOARDS);
+	
+	// loop through all boards and play
+	for (int i = 0; i < NUM_BOARDS; i++) {
+		// create board and set it's array
+		Board* b = malloc(sizeof(Board));
+		b->array = get_board(input, i);
+		b->marked = malloc(sizeof(int));
+		b->draws = 0;
+		b->num_marked = 0;
 
-	int best_board = -1;
-	int min_moves = 10000;
-	int** board;
-	for (int i = 0; i < 100; i++) {
-		board = get_board(input, i);
-		int win = check_win(board, draws);
-		free_board(board);
+		// play the board
+		play(b, draws);
 
-		if (win >= 0) {
-			printf("Board %i is a winner, taking %i draws to win.\n", i, win);
-			if (win < min_moves) {
-				best_board = i;
-				min_moves = win;
-			}
-		}
+		// save board to boards
+		boards[i] = b;
 	}
 
-	printf("Best Board: %i\n", best_board);
-	board = get_board(input, best_board);
+	// find index of the board with the lowest number of draws taken to win
+	int min_index = 0;
+	for (int i = 1; i < NUM_BOARDS; i++)
+		if (boards[i]->draws < boards[min_index]->draws)
+			min_index = i;
+	
+	// get the board
+	Board* b = boards[min_index];
+	printf("Winning Board:\n");
+	for (int i = 0; i < BOARD_H; i++) {
+		for (int j = 0; j < BOARD_W; j++)
+			printf("%i ", b->array[i][j]);
+		printf("\n");
+	}
+	printf("\nMarked: ");
+	for (int i = 0; i < b->num_marked; i++)
+		printf("%i ", b->marked[i]);
+	printf("\n");
 
+	// calculate the sum of all unmarked numbers in the board
+	unsigned int unmarked_sum = 0;
+	// iterate through each row
+	for (int row = 0; row < BOARD_H; row++) {
+		// iterate through each number in the current row
+		for (int col = 0; col < BOARD_W; col++) {
+			// if the current number isn't marked, add it's value to unmarked sum
+			if (num_inside(b->marked, b->num_marked, b->array[row][col]) == 0)
+				unmarked_sum += b->array[row][col];
+		}
+	}
+	printf("Unmarked Sum: %i\n", unmarked_sum);
+	
+	// calculate the answer by multiplying the unmarked sum by the winning drawn number
+	unsigned long answer = unmarked_sum * b->winning_draw;
+	// print the answer to the console
+	printf("Answer: %lu\n", answer);
+
+	
+	// free alloc'd memory
 	free(draws);
+	for (int i = 0; i < NUM_BOARDS; i++)
+		free_board(boards[i]);
+	free(boards);
 }
