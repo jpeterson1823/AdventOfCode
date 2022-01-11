@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "../include/part1.h"
-#include "../include/part2.h"
+#include "../include/parts.h"
 
 
 // PROTOTYPES
@@ -13,7 +12,11 @@ int main() {
 	// get puzzle input from file
 	char* str = get_input(100);
 
+	printf("====[ Part 1 ]====\n");
 	part1(str);
+	printf("\n");
+	printf("====[ Part 2 ]====\n");
+	part2(str);
 
 	// free allocated memory
 	free(str);

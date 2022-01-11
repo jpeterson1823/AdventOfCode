@@ -1,8 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../include/cstring.h"
-#include "../include/part1.h"
-#include "../include/cstring.h"
+#include "../include/parts.h"
 
 int* get_draws(char* input) {
 	int len = 0;
@@ -190,20 +189,88 @@ void part1(char* input) {
 	}
 
 	// find index of the board with the lowest number of draws taken to win
-	int min_index = 0;
+	int max_index = 0;
 	for (int i = 1; i < NUM_BOARDS; i++)
-		if (boards[i]->draws < boards[min_index]->draws)
-			min_index = i;
+		if (boards[i]->draws < boards[max_index]->draws)
+			max_index = i;
 	
 	// get the board
-	Board* b = boards[min_index];
-	printf("Winning Board:\n");
+	Board* b = boards[max_index];
+	printf("Winning Board:\n\t");
 	for (int i = 0; i < BOARD_H; i++) {
 		for (int j = 0; j < BOARD_W; j++)
 			printf("%i ", b->array[i][j]);
-		printf("\n");
+		printf("\n\t");
 	}
-	printf("\nMarked: ");
+	printf("Marked: ");
+	for (int i = 0; i < b->num_marked; i++)
+		printf("%i ", b->marked[i]);
+	printf("\n");
+
+	// calculate the sum of all unmarked numbers in the board
+	unsigned int unmarked_sum = 0;
+	// iterate through each row
+	for (int row = 0; row < BOARD_H; row++) {
+		// iterate through each number in the current row
+		for (int col = 0; col < BOARD_W; col++) {
+			// if the current number isn't marked, add it's value to unmarked sum
+			if (num_inside(b->marked, b->num_marked, b->array[row][col]) == 0)
+				unmarked_sum += b->array[row][col];
+		}
+	}
+	printf("Unmarked Sum: %i\n", unmarked_sum);
+	
+	// calculate the answer by multiplying the unmarked sum by the winning drawn number
+	unsigned long answer = unmarked_sum * b->winning_draw;
+	// print the answer to the console
+	printf("Answer: %lu\n", answer);
+
+	
+	// free alloc'd memory
+	free(draws);
+	for (int i = 0; i < NUM_BOARDS; i++)
+		free_board(boards[i]);
+	free(boards);
+}
+
+void part2(char* input) {
+	// get rolls from first line of file
+	int* draws = get_draws(input);
+
+	// create list of boards
+	Board** boards = malloc(sizeof(Board*) * NUM_BOARDS);
+	
+	// loop through all boards and play
+	for (int i = 0; i < NUM_BOARDS; i++) {
+		// create board and set it's array
+		Board* b = malloc(sizeof(Board));
+		b->array = get_board(input, i);
+		b->marked = malloc(sizeof(int));
+		b->draws = 0;
+		b->num_marked = 0;
+
+		// play the board
+		play(b, draws);
+
+		// save board to boards
+		boards[i] = b;
+	}
+
+	// find index of the board with the highest number of draws taken to win
+	int max_index = 0;
+	for (int i = 1; i < NUM_BOARDS; i++)
+		if (boards[i]->draws > boards[max_index]->draws)
+			max_index = i;
+	
+	// get the board
+	Board* b = boards[max_index];
+	printf("Worst Board:\n\t");
+	for (int i = 0; i < BOARD_H; i++) {
+		for (int j = 0; j < BOARD_W; j++)
+			printf("%i ", b->array[i][j]);
+		printf("\n\t");
+	}
+	printf("Marked: ");
 	for (int i = 0; i < b->num_marked; i++)
 		printf("%i ", b->marked[i]);
 	printf("\n");

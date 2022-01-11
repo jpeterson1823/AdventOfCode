@@ -25,5 +25,6 @@ void play(Board* board, int* draws);
 unsigned int num_inside(int* arr, int len, int num);
 
 void part1(char* input);
+void part2(char* input);
 
 #endif
