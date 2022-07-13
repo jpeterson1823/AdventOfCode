@@ -2,5 +2,4 @@
 *.o
 *.class
 
-/target
-/debug
+target/
