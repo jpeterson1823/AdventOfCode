@@ -1,10 +1,12 @@
 use std::fs;
 
 mod part1;
+mod part2;
 
 fn main() {
     let instructions = parse_input();
     part1::solve(&instructions);
+    part2::solve(&instructions);
 }
 
 fn parse_input() -> Vec<(char, u32)> {
